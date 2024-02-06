@@ -1,62 +1,29 @@
 version: '2'
 services:
-
-    mongo:
-        image: mongo:3.4
-        restart: unless-stopped
-        volumes:
-            - "${DATA_LOCATION}/mongo:/data/db"
-
-    redis:
-        image: redis:4-alpine
-        restart: unless-stopped
-
     xapi:
         image: learninglocker/xapi-service:2.1.10
         restart: unless-stopped
-        environment:
-            - MONGO_URL=mongodb://mongo:27017/learninglocker_v2
-            - MONGO_DB=learninglocker_v2
-            - REDIS_URL=redis://redis:6379/0
-        depends_on:
-            - mongo
-            - redis
+        env_file:
+            - .env
         volumes:
             - "${DATA_LOCATION}/xapi-storage:/usr/src/app/storage"
 
     api:
         image: michzimny/learninglocker2-app:${DOCKER_TAG}
-        environment:
-            - DOMAIN_NAME
-            - APP_SECRET
-            - SMTP_HOST
-            - SMTP_PORT
-            - SMTP_SECURED
-            - SMTP_USER
-            - SMTP_PASS
+        env_file:
+            - .env
         command: "node api/dist/server"
         restart: unless-stopped
-        depends_on:
-            - mongo
-            - redis
         volumes:
             - "${DATA_LOCATION}/app-storage:/opt/learninglocker/storage"
 
     ui:
         image: michzimny/learninglocker2-app:${DOCKER_TAG}
-        environment:
-            - DOMAIN_NAME
-            - APP_SECRET
-            - SMTP_HOST
-            - SMTP_PORT
-            - SMTP_SECURED
-            - SMTP_USER
-            - SMTP_PASS
+        env_file:
+            - .env
         command: "./entrypoint-ui.sh"
         restart: unless-stopped
         depends_on:
-            - mongo
-            - redis
             - api
         volumes:
             - "${DATA_LOCATION}/app-storage:/opt/learninglocker/storage"
@@ -64,26 +31,17 @@ services:
 
     worker:
         image: michzimny/learninglocker2-app:${DOCKER_TAG}
-        environment:
-            - DOMAIN_NAME
-            - APP_SECRET
-            - SMTP_HOST
-            - SMTP_PORT
-            - SMTP_SECURED
-            - SMTP_USER
-            - SMTP_PASS
+        env_file:
+            - .env
         command: "node worker/dist/server"
         restart: unless-stopped
-        depends_on:
-            - mongo
-            - redis
         volumes:
             - "${DATA_LOCATION}/app-storage:/opt/learninglocker/storage"
 
     nginx:
         image: michzimny/learninglocker2-nginx:${DOCKER_TAG}
-        environment:
-            - DOMAIN_NAME
+        env_file:
+            - .env
         restart: unless-stopped
         depends_on:
             - ui

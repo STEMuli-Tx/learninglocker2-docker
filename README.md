@@ -22,7 +22,7 @@ which are mounted as volumes to Mongo container and app-based containers.
 The origin service ui expects service api to work on localhost, 
 however in this dockerized version the both services are run in separate containers. 
 To make connections between those services work, socat process is run within ui container to forward local tcp connections to api container.
-
+[]()
 ## Usage
 
 To build the images:
