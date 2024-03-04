@@ -2,3 +2,4 @@ command
 .env
 
 /data
+/certs
