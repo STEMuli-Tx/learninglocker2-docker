@@ -1,52 +1,63 @@
-version: '2'
+version: "2"
 services:
-    xapi:
-        image: learninglocker/xapi-service:2.1.10
-        restart: unless-stopped
-        env_file:
-            - .env
-        volumes:
-            - "${DATA_LOCATION}/xapi-storage:/usr/src/app/storage"
+  redis:
+    image: redis:4-alpine
+    restart: unless-stopped
+  xapi:
+    image: learninglocker/xapi-service:2.1.10
+    restart: unless-stopped
+    environment:
+      - REDIS_URL=redis://redis:6379/0
+    depends_on:
+      - redis
+    env_file:
+      - .env
+    volumes:
+      - "${DATA_LOCATION}/xapi-storage:/usr/src/app/storage"
 
-    api:
-        image: michzimny/learninglocker2-app:${DOCKER_TAG}
-        env_file:
-            - .env
-        command: "node api/dist/server"
-        restart: unless-stopped
-        volumes:
-            - "${DATA_LOCATION}/app-storage:/opt/learninglocker/storage"
+  api:
+    image: michzimny/learninglocker2-app:${DOCKER_TAG}
+    env_file:
+      - .env
+    command: "node api/dist/server"
+    restart: unless-stopped
+    depends_on:
+      - redis
+    volumes:
+      - "${DATA_LOCATION}/app-storage:/opt/learninglocker/storage"
 
-    ui:
-        image: michzimny/learninglocker2-app:${DOCKER_TAG}
-        env_file:
-            - .env
-        command: "./entrypoint-ui.sh"
-        restart: unless-stopped
-        depends_on:
-            - api
-        volumes:
-            - "${DATA_LOCATION}/app-storage:/opt/learninglocker/storage"
-            - "${DATA_LOCATION}/ui-logs:/opt/learninglocker/logs"
+  ui:
+    image: michzimny/learninglocker2-app:${DOCKER_TAG}
+    env_file:
+      - .env
+    command: "./entrypoint-ui.sh"
+    restart: unless-stopped
+    depends_on:
+      - redis
+      - api
+    volumes:
+      - "${DATA_LOCATION}/app-storage:/opt/learninglocker/storage"
+      - "${DATA_LOCATION}/ui-logs:/opt/learninglocker/logs"
 
-    worker:
-        image: michzimny/learninglocker2-app:${DOCKER_TAG}
-        env_file:
-            - .env
-        command: "node worker/dist/server"
-        restart: unless-stopped
-        volumes:
-            - "${DATA_LOCATION}/app-storage:/opt/learninglocker/storage"
+  worker:
+    image: michzimny/learninglocker2-app:${DOCKER_TAG}
+    env_file:
+      - .env
+    command: "node worker/dist/server"
+    restart: unless-stopped
+    depends_on:
+      - redis
+    volumes:
+      - "${DATA_LOCATION}/app-storage:/opt/learninglocker/storage"
 
-    nginx:
-        image: michzimny/learninglocker2-nginx:${DOCKER_TAG}
-        env_file:
-            - .env
-        restart: unless-stopped
-        depends_on:
-            - ui
-            - xapi
-        ports:
-            - "443:443"
-            - "80:80"
-
+  nginx:
+    image: michzimny/learninglocker2-nginx:${DOCKER_TAG}
+    env_file:
+      - .env
+    restart: unless-stopped
+    depends_on:
+      - ui
+      - xapi
+    ports:
+      - "443:443"
+      - "80:80"
