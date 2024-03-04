@@ -58,6 +58,9 @@ services:
     depends_on:
       - ui
       - xapi
+    volumes:
+      - "/certs/fullchain.pem:/root/ssl/fullchain.pem:ro"
+      - "/certs/privkey.pem:/root/ssl/privkey.pem:ro"
     ports:
       - "443:443"
       - "80:80"
