@@ -3,6 +3,8 @@ services:
   mongo:
     image: mongo:3.4
     restart: unless-stopped
+    ports:
+      - "27017:27017" # Expose MongoDB on host's port 27017
     volumes:
       - "${DATA_LOCATION}/mongo:/data/db"
 
